@@ -28,7 +28,7 @@ class Graph {
         // typedefs
         // --------
 
-        typedef unsigned long                              vertex_descriptor;
+        typedef unsigned int                               vertex_descriptor;
         typedef pair<vertex_descriptor, vertex_descriptor> edge_descriptor; 
 
         typedef vector<vertex_descriptor>::const_iterator vertex_iterator; 
