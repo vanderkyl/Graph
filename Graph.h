@@ -28,12 +28,12 @@ class Graph {
         // typedefs
         // --------
 
-        typedef int vertex_descriptor; // fix!
-        typedef int edge_descriptor; // fix!
+        typedef unsigned long                              vertex_descriptor;
+        typedef pair<vertex_descriptor, vertex_descriptor> edge_descriptor; 
 
-        typedef int* vertex_iterator; // fix!
-        typedef int* edge_iterator; // fix!
-        typedef int* adjacency_iterator; // fix!
+        typedef vector<vertex_descriptor>::const_iterator vertex_iterator; 
+        typedef vector<edge_descriptor>::const_iterator   edge_iterator; 
+        typedef vector<vertex_descriptor>::const_iterator adjacency_iterator;
 
         typedef std::size_t vertices_size_type;
         typedef std::size_t edges_size_type;
@@ -44,9 +44,14 @@ class Graph {
         // --------
 
         /**
-         * <your documentation>
+         * @param vdA a vertex_descriptor
+         * @param vdB a vertex_descriptor
+         * @param g a Graph reference
+         * @return a pair 
+         * Add an edge between to vertices in a graph
+         * Returns a pair consisting of the new edge and true if successfully added.
          */
-        friend std::pair<edge_descriptor, bool> add_edge (vertex_descriptor, vertex_descriptor, Graph&) {
+        friend std::pair<edge_descriptor, bool> add_edge (vertex_descriptor vdA, vertex_descriptor vdB, Graph& g) {
             // <your code>
             edge_descriptor ed;
             bool b;
@@ -57,9 +62,12 @@ class Graph {
         // ----------
 
         /**
-         * <your documentation>
+         * @param g a Graph reference
+         * @return a vertex_descriptor
+         * Add a vertex to the given graph
+         * Returns the vertex_descriptor of the added vertex
          */
-        friend vertex_descriptor add_vertex (Graph&) {
+        friend vertex_descriptor add_vertex (Graph& g) {
             // <your code>
             vertex_descriptor v;
             return v;}
@@ -69,9 +77,11 @@ class Graph {
         // -----------------
 
         /**
-         * <your documentation>
+         * @param vd a vertex_descriptor
+         * @return a pair
+         * Returns a pair of iterators that belong to the vertices adjacent to the given vd
          */
-        friend std::pair<adjacency_iterator, adjacency_iterator> adjacent_vertices (vertex_descriptor, const Graph&) {
+        friend std::pair<adjacency_iterator, adjacency_iterator> adjacent_vertices (vertex_descriptor vd, const Graph& g) {
             // <your code>
             adjacency_iterator b = adjacency_iterator();
             adjacency_iterator e = adjacency_iterator();
@@ -82,7 +92,11 @@ class Graph {
         // ----
 
         /**
-         * <your documentation>
+         * @param vdA a vertex_descriptor
+         * @param vdB a vertex_descriptor
+         * @param g a const Graph reference
+         * @return a pair 
+         * Returns a pair consisting of the edge_descriptor and true if edge exists
          */
         friend std::pair<edge_descriptor, bool> edge (vertex_descriptor, vertex_descriptor, const Graph&) {
             // <your code>
@@ -95,9 +109,11 @@ class Graph {
         // -----
 
         /**
-         * <your documentation>
+         * @param g a read-only Graph reference
+         * @return a pair
+         * Returns a pair consisting of the beginning and end iterators of the edges
          */
-        friend std::pair<edge_iterator, edge_iterator> edges (const Graph&) {
+        friend std::pair<edge_iterator, edge_iterator> edges (const Graph& g) {
             // <your code>
             edge_iterator b;
             edge_iterator e;
@@ -108,7 +124,9 @@ class Graph {
         // ---------
 
         /**
-         * <your documentation>
+         * @param g a read-only Graph reference
+         * @return a edges_size_type
+         * Return the number of edges
          */
         friend edges_size_type num_edges (const Graph&) {
             // <your code>
@@ -120,9 +138,11 @@ class Graph {
         // ------------
 
         /**
-         * <your documentation>
+         * @param g a read-only Graph reference
+         * @return a vertices_size_type
+         * Return the number of vertices
          */
-        friend vertices_size_type num_vertices (const Graph&) {
+        friend vertices_size_type num_vertices (const Graph& g) {
             // <your code>
             vertices_size_type s;
             return s;}
@@ -132,9 +152,12 @@ class Graph {
         // ------
 
         /**
-         * <your documentation>
+         * @param ed an edge_descriptor
+         * @param g a read-only Graph reference
+         * @return a vertex_descriptor
+         * Return the source vertex at the beginning of the given edge
          */
-        friend vertex_descriptor source (edge_descriptor, const Graph&) {
+        friend vertex_descriptor source (edge_descriptor ed, const Graph& g) {
             // <your code>
             vertex_descriptor v;
             return v;}
@@ -144,9 +167,12 @@ class Graph {
         // ------
 
         /**
-         * <your documentation>
+         * @param ed an edge_descriptor
+         * @param g a read-only Graph reference
+         * @return a vertex_descriptor
+         * Return the target vertex at the end of the given edge
          */
-        friend vertex_descriptor target (edge_descriptor, const Graph&) {
+        friend vertex_descriptor target (edge_descriptor ed, const Graph& g) {
             // <your code>
             vertex_descriptor v;
             return v;}
@@ -156,9 +182,12 @@ class Graph {
         // ------
 
         /**
-         * <your documentation>
+         * @param s a vertices_size_type
+         * @param g a read only Graph reference
+         * @return a vertex_descriptor
+         * Return a vertex_descriptor of the vertex of size s on Graph g
          */
-        friend vertex_descriptor vertex (vertices_size_type, const Graph&) {
+        friend vertex_descriptor vertex (vertices_size_type s, const Graph& g) {
             // <your code>
             vertex_descriptor vd;
             return vd;}
@@ -168,9 +197,11 @@ class Graph {
         // --------
 
         /**
-         * <your documentation>
+         * @param g a read-only Graph reference
+         * @return a pair of vertex_iterators
+         * Returns the beginning and end iterators for the given Graph
          */
-        friend std::pair<vertex_iterator, vertex_iterator> vertices (const Graph&) {
+        friend std::pair<vertex_iterator, vertex_iterator> vertices (const Graph& g) {
             // <your code>
             vertex_iterator b = vertex_iterator();
             vertex_iterator e = vertex_iterator();
@@ -188,7 +219,7 @@ class Graph {
         // -----
 
         /**
-         * <your documentation>
+         * Check if the Graph is valid
          */
         bool valid () const {
             // <your code>
@@ -200,7 +231,7 @@ class Graph {
         // ------------
 
         /**
-         * <your documentation>
+         * Default constructor
          */
         Graph () {
             // <your code>
@@ -219,7 +250,9 @@ class Graph {
 /**
  * depth-first traversal
  * three colors
- * <your documentation>
+ * @param g a read-only typename G reference
+ * @return a bool
+ * Return true if g contains a cycle, false if not
  */
 template <typename G>
 bool has_cycle (const G& g) {
@@ -232,8 +265,10 @@ bool has_cycle (const G& g) {
 /**
  * depth-first traversal
  * two colors
- * <your documentation>
+ * @param g a read-only typename G reference
+ * @param x an output iterator
  * @throws Boost's not_a_dag exception if has_cycle()
+ * Execute a topological sort
  */
 template <typename G, typename OI>
 void topological_sort (const G& g, OI x) {
