@@ -77,7 +77,6 @@ class Graph {
             g._vertices.push_back(v);
             // Push a newly constructed vertex onto g
             g._graph.push_back(vector<vertex_descriptor>());
-            assert(valid());
             return v;}
 
         // -----------------
@@ -90,9 +89,8 @@ class Graph {
          * Returns a pair of iterators that belong to the vertices adjacent to the given vd
          */
         friend std::pair<adjacency_iterator, adjacency_iterator> adjacent_vertices (vertex_descriptor vd, const Graph& g) {
-            // <your code>
             adjacency_iterator b = g._graph[vd].begin();
-            adjacency_iterator e = g._graph[vd].begin();
+            adjacency_iterator e = g._graph[vd].end();
             return make_pair(b, e);}
 
         // ----
@@ -106,7 +104,7 @@ class Graph {
          * @return a pair 
          * Returns a pair consisting of the edge_descriptor and true if edge exists
          */
-        friend std::pair<edge_descriptor, bool> edge (vertex_descriptor, vertex_descriptor, const Graph&) {
+        friend pair<edge_descriptor, bool> edge (vertex_descriptor vdA, vertex_descriptor vdB, const Graph& g) {
             edge_descriptor ed = make_pair(vdA, vdB);
             bool b = true;
             if (find(g._edges.begin(), g._edges.end(), ed) == g._edges.end()) 
@@ -122,7 +120,7 @@ class Graph {
          * @return a pair
          * Returns a pair consisting of the beginning and end iterators of the edges
          */
-        friend std::pair<edge_iterator, edge_iterator> edges (const Graph& g) {
+        friend pair<edge_iterator, edge_iterator> edges (const Graph& g) {
             edge_iterator b = g._edges.begin();
             edge_iterator e = g._edges.end();
             return make_pair(b, e);}
@@ -136,8 +134,8 @@ class Graph {
          * @return a edges_size_type
          * Return the number of edges
          */
-        friend edges_size_type num_edges (const Graph&) {
-            edges_size_type s = _edges.size();
+        friend edges_size_type num_edges (const Graph& g) {
+            edges_size_type s = g._edges.size();
             return s;}
 
         // ------------
@@ -150,7 +148,7 @@ class Graph {
          * Return the number of vertices
          */
         friend vertices_size_type num_vertices (const Graph& g) {
-            vertices_size_type s = _vertices.size();
+            vertices_size_type s = g._vertices.size();
             return s;}
 
         // ------
