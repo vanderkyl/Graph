@@ -246,6 +246,23 @@ class Graph {
 // has_cycle
 // ---------
 
+template <typename C, typename G>
+bool help_cycle (typename G::adjacency_iterator b, typename G::adjacency_iterator e, C& vd, const G& g) {
+    while (b != e) {
+        typename C::iterator vb = vd.begin();
+        typename C::iterator ve = vd.end();
+ 	if(find(vb, ve, *b) != ve)
+	    return true;
+        vd.push_back(*b);
+	pair<typename G::adjacency_iterator, typename G::adjacency_iterator> ai = adjacent_vertices(*b, g);
+	if(help_cycle(ai.first, ai.second, vd, g))
+	    return true;
+	vd.pop_back();
+	++b;
+    }
+    return false;
+}
+ 
 /**
  * depth-first traversal
  * three colors
@@ -255,7 +272,19 @@ class Graph {
  */
 template <typename G>
 bool has_cycle (const G& g) {
-    return true;}
+    pair<typename G::vertex_iterator, typename G::vertex_iterator> vi = vertices(g);
+    typename G::vertex_iterator b = vi.first;
+    typename G::vertex_iterator e = vi.second;
+    vector<typename G::vertex_descriptor> vd;
+    while (b != e) {
+        vd.push_back(*b);
+	pair<typename G::adjacency_iterator, typename G::adjacency_iterator> ai = adjacent_vertices(*b, g);
+	if(help_cycle(ai.first, ai.second, vd, g))
+	    return true;
+        vd.pop_back();
+	++b;
+    }
+    return false;}
 
 // ----------------
 // topological_sort
