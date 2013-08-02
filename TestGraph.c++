@@ -91,6 +91,15 @@ struct TestGraph : CppUnit::TestFixture {
     edge_descriptor edFH;
     edge_descriptor edGH;
 
+    graph_type no_cycle;
+
+    vertex_descriptor vd1;
+    vertex_descriptor vd2;
+    vertex_descriptor vd3;
+
+    edge_descriptor ed12;
+    edge_descriptor ed23;
+
     // -----
     // setUp
     // -----
@@ -114,7 +123,13 @@ struct TestGraph : CppUnit::TestFixture {
         edDF = add_edge(vdD, vdF, g).first;
         edFD = add_edge(vdF, vdD, g).first;
         edFH = add_edge(vdF, vdH, g).first;
-        edGH = add_edge(vdG, vdH, g).first;}
+        edGH = add_edge(vdG, vdH, g).first;
+
+	vd1 = add_vertex(no_cycle);
+        vd2 = add_vertex(no_cycle);
+        vd3 = add_vertex(no_cycle);
+        ed12 = add_edge(vd1, vd2, no_cycle).first;
+        ed23 = add_edge(vd3, vd2, no_cycle).first;}
 
     // -------------
     // test_add_edge
@@ -229,8 +244,11 @@ struct TestGraph : CppUnit::TestFixture {
     // test_has_cycle
     // --------------
 
-    void test_has_cycle () {
+    void test_has_cycle1 () {
         CPPUNIT_ASSERT(has_cycle(g));}
+
+    void test_has_cycle2 () {
+        CPPUNIT_ASSERT(!has_cycle(no_cycle));}
 
     // ---------------------
     // test_topological_sort
@@ -256,6 +274,8 @@ struct TestGraph : CppUnit::TestFixture {
     CPPUNIT_TEST(test_target);
     CPPUNIT_TEST(test_vertex);
     CPPUNIT_TEST(test_vertices);
+    CPPUNIT_TEST(test_has_cycle1);
+    CPPUNIT_TEST(test_has_cycle2);
     CPPUNIT_TEST_SUITE_END();};
 
 
@@ -272,7 +292,7 @@ int main () {
 
     CppUnit::TextTestRunner tr;
     tr.addTest(TestGraph< adjacency_list<setS, vecS, directedS> >::suite());
-// tr.addTest(TestGraph<Graph>::suite()); // uncomment
+    tr.addTest(TestGraph<Graph>::suite()); // uncomment
     tr.run();
 
     cout << "Done." << endl;
