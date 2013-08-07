@@ -54,10 +54,19 @@ class Graph {
         friend pair<edge_descriptor, bool> add_edge (vertex_descriptor vdA, vertex_descriptor vdB, Graph& g) {
             edge_descriptor ed = make_pair(vdA, vdB);
             bool b = false;
+            // If the edge does not exist, add the new edge
             if (find(g._edges.begin(), g._edges.end(), ed) == g._edges.end()) { 
+                unsigned int s = g._vertices.size();
+                if (vdA >= s|| vdB >= s) {
+                    vertex_descriptor v_size = (max(vdA, vdB) + 1) - s;
+                    while (v_size != 0) {
+                        add_vertex(g);
+                        --v_size;
+                    }
+                }
                 b = true;
-                g._edges.push_back(ed);
                 g._graph[vdA].push_back(vdB);
+                g._edges.push_back(ed);
             }
             return make_pair(ed, b);}
 
@@ -72,11 +81,11 @@ class Graph {
          * Returns the vertex_descriptor of the added vertex
          */
         friend vertex_descriptor add_vertex (Graph& g) {
-            vertex_descriptor v = g._vertices.size();
-            g._vertices.push_back(v);
+            vertex_descriptor vd = g._vertices.size();
+            g._vertices.push_back(vd);
             // Push a newly constructed vertex onto g
             g._graph.push_back(vector<vertex_descriptor>());
-            return v;}
+            return vd;}
 
         // -----------------
         // adjacent_vertices
@@ -88,9 +97,7 @@ class Graph {
          * Returns a pair of iterators that belong to the vertices adjacent to the given vd
          */
         friend pair<adjacency_iterator, adjacency_iterator> adjacent_vertices (vertex_descriptor vd, const Graph& g) {
-            adjacency_iterator b = g._graph[vd].begin();
-            adjacency_iterator e = g._graph[vd].end();
-            return make_pair(b, e);}
+            return make_pair(g._graph[vd].begin(), g._graph[vd].end());}
 
         // ----
         // edge
@@ -120,9 +127,7 @@ class Graph {
          * Returns a pair consisting of the beginning and end iterators of the edges
          */
         friend pair<edge_iterator, edge_iterator> edges (const Graph& g) {
-            edge_iterator b = g._edges.begin();
-            edge_iterator e = g._edges.end();
-            return make_pair(b, e);}
+            return make_pair(g._edges.begin(), g._edges.end());}
 
         // ---------
         // num_edges
@@ -197,9 +202,7 @@ class Graph {
          * Returns the beginning and end iterators for the given Graph
          */
         friend pair<vertex_iterator, vertex_iterator> vertices (const Graph& g) {
-            vertex_iterator b = g._vertices.begin();
-            vertex_iterator e = g._vertices.end();
-            return make_pair(b, e);}
+            return make_pair(g._vertices.begin(), g._vertices.end());}
 
     private:
         // ----
@@ -292,6 +295,9 @@ bool has_cycle (const G& g) {
 // topological_sort
 // ----------------
 
+/*
+ *
+ */
 template <typename G>
 void target_source_sort (const G& g, vector<int>& t, vector<typename G::vertex_descriptor>& s) {
     typedef typename G::edge_iterator e_iterator;
@@ -351,13 +357,13 @@ void topological_sort (const G& g, OI x) {
         throw boost::not_a_dag();
     v_size size = num_vertices(g);
     assert(size != 0);
-
+    // Create vectors for the target vertices and source vertices
     vector<int> targets(size);
     vector<v_descriptor> sources;
     target_source_sort(g, targets, sources);
-
+    // Topologically sort the vertices
     vector<v_descriptor> temp = help_sort(g, targets, sources);
-    
+    // 
     while(temp.size() != 0) {
         *x = temp.back();
         temp.pop_back();
