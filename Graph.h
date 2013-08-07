@@ -51,16 +51,15 @@ class Graph {
          * Add an edge between to vertices in a graph
          * Returns a pair consisting of the new edge and true if successfully added.
          */
-        friend std::pair<edge_descriptor, bool> add_edge (vertex_descriptor vdA, vertex_descriptor vdB, Graph& g) {
+        friend pair<edge_descriptor, bool> add_edge (vertex_descriptor vdA, vertex_descriptor vdB, Graph& g) {
             edge_descriptor ed = make_pair(vdA, vdB);
             bool b = false;
-            if (find(g._edges.begin(), g._edges.end(), ed) == g._edges.end())
+            if (find(g._edges.begin(), g._edges.end(), ed) == g._edges.end()) { 
                 b = true;
-            if (b) {
                 g._edges.push_back(ed);
                 g._graph[vdA].push_back(vdB);
             }
-            return std::make_pair(ed, b);}
+            return make_pair(ed, b);}
 
         // ----------
         // add_vertex
@@ -88,7 +87,7 @@ class Graph {
          * @return a pair
          * Returns a pair of iterators that belong to the vertices adjacent to the given vd
          */
-        friend std::pair<adjacency_iterator, adjacency_iterator> adjacent_vertices (vertex_descriptor vd, const Graph& g) {
+        friend pair<adjacency_iterator, adjacency_iterator> adjacent_vertices (vertex_descriptor vd, const Graph& g) {
             adjacency_iterator b = g._graph[vd].begin();
             adjacency_iterator e = g._graph[vd].end();
             return make_pair(b, e);}
@@ -135,8 +134,7 @@ class Graph {
          * Return the number of edges
          */
         friend edges_size_type num_edges (const Graph& g) {
-            edges_size_type s = g._edges.size();
-            return s;}
+            return g._edges.size();}
 
         // ------------
         // num_vertices
@@ -148,8 +146,7 @@ class Graph {
          * Return the number of vertices
          */
         friend vertices_size_type num_vertices (const Graph& g) {
-            vertices_size_type s = g._vertices.size();
-            return s;}
+            return g._vertices.size();}
 
         // ------
         // source
@@ -202,7 +199,7 @@ class Graph {
         friend pair<vertex_iterator, vertex_iterator> vertices (const Graph& g) {
             vertex_iterator b = g._vertices.begin();
             vertex_iterator e = g._vertices.end();
-            return std::make_pair(b, e);}
+            return make_pair(b, e);}
 
     private:
         // ----
@@ -247,22 +244,23 @@ class Graph {
 // ---------
 
 template <typename C, typename G>
-bool help_cycle (typename G::adjacency_iterator b, typename G::adjacency_iterator e, C& vd, const G& g) {
+bool help_cycle (typename G:: adjacency_iterator b, typename G:: adjacency_iterator e, C& c, const G& g) {
+    typedef typename C::iterator           v_iterator;
+    typedef typename G::adjacency_iterator a_iterator;
     while (b != e) {
-        typename C::iterator vb = vd.begin();
-        typename C::iterator ve = vd.end();
- 	if(find(vb, ve, *b) != ve)
-	    return true;
-        vd.push_back(*b);
-	pair<typename G::adjacency_iterator, typename G::adjacency_iterator> ai = adjacent_vertices(*b, g);
-	if(help_cycle(ai.first, ai.second, vd, g))
-	    return true;
-	vd.pop_back();
-	++b;
+        v_iterator vb = c.begin();
+        v_iterator ve = c.end();
+        if(find(vb, ve, *b) != ve)
+            return true;
+        c.push_back(*b);
+        pair<a_iterator, a_iterator> ai = adjacent_vertices(*b, g);
+        if(help_cycle(ai.first, ai.second, c, g))
+            return true;
+        c.pop_back();
+        ++b;
     }
     return false;
 }
- 
 /**
  * depth-first traversal
  * three colors
@@ -272,17 +270,21 @@ bool help_cycle (typename G::adjacency_iterator b, typename G::adjacency_iterato
  */
 template <typename G>
 bool has_cycle (const G& g) {
-    pair<typename G::vertex_iterator, typename G::vertex_iterator> vi = vertices(g);
-    typename G::vertex_iterator b = vi.first;
-    typename G::vertex_iterator e = vi.second;
-    vector<typename G::vertex_descriptor> vd;
+    typedef typename G::vertex_descriptor  v_descriptor;
+    typedef typename G::vertex_iterator    v_iterator;
+    typedef typename G::adjacency_iterator a_iterator;
+
+    pair<v_iterator, v_iterator> vi = vertices(g);
+    v_iterator b = vi.first;
+    v_iterator e = vi.second;
+    vector<v_descriptor> cache;
     while (b != e) {
-        vd.push_back(*b);
-	pair<typename G::adjacency_iterator, typename G::adjacency_iterator> ai = adjacent_vertices(*b, g);
-	if(help_cycle(ai.first, ai.second, vd, g))
-	    return true;
-        vd.pop_back();
-	++b;
+        cache.push_back(*b);
+        pair<a_iterator, a_iterator> ai = adjacent_vertices(*b, g);
+        if(help_cycle(ai.first, ai.second, cache, g))
+            return true;
+        cache.pop_back();
+        ++b;
     }
     return false;}
 
@@ -290,6 +292,48 @@ bool has_cycle (const G& g) {
 // topological_sort
 // ----------------
 
+template <typename G>
+void target_source_sort (const G& g, vector<int>& t, vector<typename G::vertex_descriptor>& s) {
+    typedef typename G::edge_iterator e_iterator;
+    pair<e_iterator, e_iterator> ei = edges(g);
+    e_iterator eb = ei.first;
+    e_iterator ee = ei.second;
+    while (eb != ee) {
+        ++t[target(*eb, g)];
+        ++eb;
+    }
+    for (unsigned int i = 0; i < t.size(); ++i) {
+        if (t[i] == 0) {
+            --t[i];
+            s.push_back(i);
+        }
+    }
+}
+
+template <typename G>
+vector<typename G::vertex_descriptor> help_sort (const G& g, vector<int>& t, vector<typename G::vertex_descriptor>& s) {
+    typedef typename G::adjacency_iterator a_iterator;
+    typedef typename G::vertex_descriptor  v_descriptor;
+    vector<v_descriptor> temp;
+    while (s.size() != 0) {
+        v_descriptor vd = s.back();
+        temp.push_back(vd);
+        s.pop_back();
+
+        pair<a_iterator, a_iterator> ai = adjacent_vertices(vd, g);
+        a_iterator ab = ai.first;
+        a_iterator ae = ai.second;
+        while (ab != ae) {
+            --t[*ab];
+            if (t[*ab] == 0) {
+                --t[*ab];
+                s.push_back(*ab);
+            }
+            ++ab;
+        }
+    }
+    return temp;
+}
 /**
  * depth-first traversal
  * two colors
@@ -300,11 +344,25 @@ bool has_cycle (const G& g) {
  */
 template <typename G, typename OI>
 void topological_sort (const G& g, OI x) {
-    *x = 2;
-    ++x;
-    *x = 0;
-    ++x;
-    *x = 1;
+    typedef typename G::vertices_size_type v_size;
+    typedef typename G::vertex_descriptor  v_descriptor;
+    
+    if (has_cycle(g))
+        throw boost::not_a_dag();
+    v_size size = num_vertices(g);
+    assert(size != 0);
+
+    vector<int> targets(size);
+    vector<v_descriptor> sources;
+    target_source_sort(g, targets, sources);
+
+    vector<v_descriptor> temp = help_sort(g, targets, sources);
+    
+    while(temp.size() != 0) {
+        *x = temp.back();
+        temp.pop_back();
+        ++x;
     }
+}
 
 #endif // Graph_h
