@@ -57,7 +57,7 @@ class Graph {
             // If the edge does not exist, add the new edge
             if (find(g._edges.begin(), g._edges.end(), ed) == g._edges.end()) { 
                 unsigned int s = g._vertices.size();
-                if (vdA >= s|| vdB >= s) {
+                if (vdA >= s || vdB >= s) {
                     vertex_descriptor v_size = (max(vdA, vdB) + 1) - s;
                     while (v_size != 0) {
                         add_vertex(g);
@@ -246,8 +246,16 @@ class Graph {
 // has_cycle
 // ---------
 
-template <typename C, typename G>
-bool help_cycle (typename G:: adjacency_iterator b, typename G:: adjacency_iterator e, C& c, const G& g) {
+/**
+ * @param g a read-only G reference
+ * @param b an adjacency_iterator
+ * @param e an adjacency_iterator
+ * @param c a C reference 
+ * @return a bool
+ * Recursive function to go through each possible edge pathway
+ */
+template <typename G, typename C>
+bool help_cycle (const G& g, typename G:: adjacency_iterator b, typename G:: adjacency_iterator e, C& c) {
     typedef typename C::iterator           v_iterator;
     typedef typename G::adjacency_iterator a_iterator;
     while (b != e) {
@@ -257,13 +265,14 @@ bool help_cycle (typename G:: adjacency_iterator b, typename G:: adjacency_itera
             return true;
         c.push_back(*b);
         pair<a_iterator, a_iterator> ai = adjacent_vertices(*b, g);
-        if(help_cycle(ai.first, ai.second, c, g))
+        if(help_cycle(g, ai.first, ai.second, c))
             return true;
         c.pop_back();
         ++b;
     }
     return false;
 }
+
 /**
  * depth-first traversal
  * three colors
@@ -276,15 +285,15 @@ bool has_cycle (const G& g) {
     typedef typename G::vertex_descriptor  v_descriptor;
     typedef typename G::vertex_iterator    v_iterator;
     typedef typename G::adjacency_iterator a_iterator;
-
     pair<v_iterator, v_iterator> vi = vertices(g);
     v_iterator b = vi.first;
     v_iterator e = vi.second;
+    // A vector that contains the vertices already looked at for faster search
     vector<v_descriptor> cache;
     while (b != e) {
         cache.push_back(*b);
         pair<a_iterator, a_iterator> ai = adjacent_vertices(*b, g);
-        if(help_cycle(ai.first, ai.second, cache, g))
+        if(help_cycle(g, ai.first, ai.second, cache))
             return true;
         cache.pop_back();
         ++b;
@@ -296,7 +305,10 @@ bool has_cycle (const G& g) {
 // ----------------
 
 /*
- *
+ * @param g a const G reference
+ * @param t a vector<int> reference -> targets 
+ * @param s a vector<vertex_descriptor> -> sources
+ * Sort vertices into targets and sources
  */
 template <typename G>
 void target_source_sort (const G& g, vector<int>& t, vector<typename G::vertex_descriptor>& s) {
@@ -304,10 +316,12 @@ void target_source_sort (const G& g, vector<int>& t, vector<typename G::vertex_d
     pair<e_iterator, e_iterator> ei = edges(g);
     e_iterator eb = ei.first;
     e_iterator ee = ei.second;
+    // Signify which vertices are targets
     while (eb != ee) {
         ++t[target(*eb, g)];
         ++eb;
     }
+    // Signify which are sources and push onto source vector
     for (unsigned int i = 0; i < t.size(); ++i) {
         if (t[i] == 0) {
             --t[i];
@@ -316,14 +330,21 @@ void target_source_sort (const G& g, vector<int>& t, vector<typename G::vertex_d
     }
 }
 
+/*
+ * @param g a const G reference
+ * @param t a vector<int> reference -> targets 
+ * @param s a vector<vertex_descriptor> -> sources
+ * @return vector<vertex_descriptor> containing output
+ * Sort and push onto output vector
+ */
 template <typename G>
 vector<typename G::vertex_descriptor> help_sort (const G& g, vector<int>& t, vector<typename G::vertex_descriptor>& s) {
     typedef typename G::adjacency_iterator a_iterator;
     typedef typename G::vertex_descriptor  v_descriptor;
-    vector<v_descriptor> temp;
+    vector<v_descriptor> output;
     while (s.size() != 0) {
         v_descriptor vd = s.back();
-        temp.push_back(vd);
+        output.push_back(vd);
         s.pop_back();
 
         pair<a_iterator, a_iterator> ai = adjacent_vertices(vd, g);
@@ -338,7 +359,7 @@ vector<typename G::vertex_descriptor> help_sort (const G& g, vector<int>& t, vec
             ++ab;
         }
     }
-    return temp;
+    return output;
 }
 /**
  * depth-first traversal
@@ -352,7 +373,6 @@ template <typename G, typename OI>
 void topological_sort (const G& g, OI x) {
     typedef typename G::vertices_size_type v_size;
     typedef typename G::vertex_descriptor  v_descriptor;
-    
     if (has_cycle(g))
         throw boost::not_a_dag();
     v_size size = num_vertices(g);
@@ -362,11 +382,11 @@ void topological_sort (const G& g, OI x) {
     vector<v_descriptor> sources;
     target_source_sort(g, targets, sources);
     // Topologically sort the vertices
-    vector<v_descriptor> temp = help_sort(g, targets, sources);
-    // 
-    while(temp.size() != 0) {
-        *x = temp.back();
-        temp.pop_back();
+    vector<v_descriptor> output = help_sort(g, targets, sources);
+    // Copy the sorted vertices into the output iterator
+    while(output.size() != 0) {
+        *x = output.back();
+        output.pop_back();
         ++x;
     }
 }
